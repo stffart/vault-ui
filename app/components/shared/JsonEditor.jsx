@@ -74,7 +74,7 @@ class JsonEditor extends React.Component {
 
         this._jsoneditor = new JSONEditor(container, options, this.props.value);
         this.setState({hasValue: true});
-        this._jsoneditor.focus();
+//        this._jsoneditor.focus();
     }
 
     componentWillReceiveProps(nextProps) {

@@ -8,6 +8,7 @@ import FlatButton from 'material-ui/FlatButton';
 export default class VaultObjectDeleter extends Component {
     static propTypes = {
         path: PropTypes.string,
+        open: PropTypes.bool,
         forceShowDialog: PropTypes.bool,
         onReceiveResponse: PropTypes.func,
         onReceiveError: PropTypes.func,
@@ -16,6 +17,7 @@ export default class VaultObjectDeleter extends Component {
 
     static defaultProps = {
         path: '',
+        open: false,
         forceShowDialog: false,
         onReceiveResponse: () => { },
         onReceiveError: () => { },
@@ -26,7 +28,7 @@ export default class VaultObjectDeleter extends Component {
         super(props)
 
         this.state = {
-            openDeleteModal: false,
+            openDeleteModal: this.props.open,
             path: this.props.path
         };
     }
@@ -35,8 +37,10 @@ export default class VaultObjectDeleter extends Component {
 
     componentWillReceiveProps(nextProps) {
         // Trigger automatically on props change
-        if (nextProps.path && !_.isEqual(nextProps.path, this.props.path)) {
-            this.setState({ path: nextProps.path })
+        if (
+            (nextProps.path && !_.isEqual(nextProps.path, this.props.path)) || 
+            (nextProps.open && window.localStorage.getItem("showDeleteModal") === 'true' && this.state.openDeleteModal == false) ) {
+            this.setState({ path: nextProps.path, openDeleteModal: nextProps.open })
         }
     }
 
@@ -45,7 +49,7 @@ export default class VaultObjectDeleter extends Component {
             if (window.localStorage.getItem("showDeleteModal") === 'false' && !this.props.forceShowDialog) {
                 this.DeleteObject(this.state.path);
             } else {
-                this.setState({ openDeleteModal: true })
+                this.setState({ openDeleteModal: this.props.open })
             }
         }
     }

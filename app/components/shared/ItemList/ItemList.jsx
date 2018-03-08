@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Avatar from 'material-ui/Avatar';
-
+import Paper from 'material-ui/Paper';
 import FileFolder from 'material-ui/svg-icons/file/folder';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
+import ActionRename from 'material-ui/svg-icons/action/reorder';
 import ActionDeleteForever from 'material-ui/svg-icons/action/delete-forever';
 import ActionAccountBox from 'material-ui/svg-icons/action/account-box';
 import IconButton from 'material-ui/IconButton';
@@ -17,9 +18,11 @@ import MenuItem from 'material-ui/MenuItem';
 
 import sharedStyles from '../../shared/styles.css';
 import VaultObjectDeleter from '../../shared/DeleteObject/DeleteObject.jsx'
+import VaultObjectRenamer from '../../shared/RenameObject/RenameObject.jsx'
 import UltimatePagination from 'react-ultimate-pagination-material-ui'
 
 import { red500 } from 'material-ui/styles/colors.js';
+import { grey500 } from 'material-ui/styles/colors.js';
 
 const SORT_DIR = {
     ASC: 'asc',
@@ -39,6 +42,7 @@ export default class ItemList extends React.Component {
         maxItemsPerPage: PropTypes.number,
         onTouchTap: PropTypes.func,
         onDeleteTap: PropTypes.func.isRequired,
+        onRenameTap: PropTypes.func.isRequired,
         onCustomListRender: PropTypes.func
     };
 
@@ -60,7 +64,9 @@ export default class ItemList extends React.Component {
             currentPage: 1,
             totalPages: 1,
             deletePath: '',
-            openDelete: false
+            renamePath: '',
+            openDelete: false,
+            openRename: false
         };
 
         _.bindAll(
@@ -81,14 +87,26 @@ export default class ItemList extends React.Component {
             if (this.isPathDirectory(item)) return 0;
         }), (item) => {
             var avatar = this.isPathDirectory(item) ? (<Avatar icon={<FileFolder />} />) : (<Avatar icon={<ActionAccountBox />} />);
-            var action = this.isPathDirectory(item) ? (<IconButton />) : (
+            var actions = this.isPathDirectory(item) ?  (<IconButton />)  :             
+            (
+                <div>
+                <IconButton
+                    tooltip='Rename'
+                    onTouchTap={(e) => { e.stopPropagation(); this.setState({ renamePath: `${this.props.itemUri}/${item}`, openRename: true }); } }
+                >
+                    <ActionRename color={grey500} />
+                </IconButton> 
                 <IconButton
                     tooltip='Delete'
                     onTouchTap={(e) => { e.stopPropagation(); this.setState({ deletePath: `${this.props.itemUri}/${item}`, openDelete: true }); } }
                 >
                     {window.localStorage.getItem('showDeleteModal') === 'false' ? <ActionDeleteForever color={red500} /> : <ActionDelete color={red500} />}
                 </IconButton>
+                </div>
             );
+            
+
+            var uriItem =  this.props.itemUri+"/"+item;
 
             if (!this.isPathDirectory(item) && isFolder) {
                 isFolder = false;
@@ -99,7 +117,7 @@ export default class ItemList extends React.Component {
                         primaryText={item}
                         insetChildren={true}
                         leftAvatar={avatar}
-                        rightIconButton={action}
+                        rightIconButton={actions}
                         onTouchTap={this.props.onTouchTap && this.props.onTouchTap.bind(null, item)}
                     />
                 ])
@@ -109,7 +127,7 @@ export default class ItemList extends React.Component {
                     primaryText={item}
                     insetChildren={true}
                     leftAvatar={avatar}
-                    rightIconButton={action}
+                    rightIconButton={actions}
                     onTouchTap={this.props.onTouchTap && this.props.onTouchTap.bind(null, item)}
                 />
             )
@@ -184,16 +202,26 @@ export default class ItemList extends React.Component {
             <div>
                 <VaultObjectDeleter
                     path={this.state.deletePath}
+                    open={this.state.openDelete}
                     modalOpen={this.state.modalOpen}
-                    onReceiveResponse={this.props.onDeleteTap.bind(null, this.state.deletePath)}
-                    onReceiveError={(err) => snackBarMessage(err)}
+                    onReceiveResponse={() => { this.setState({openDelete: false}); this.props.onDeleteTap(this.state.deletePath); }}
+                    onReceiveError={(err) => { this.setState({openDelete: false}); snackBarMessage(err) }}
+                    onModalClose={() => { this.setState({openDelete: false}); }}
+                />
+                <VaultObjectRenamer
+                    path={this.state.renamePath}
+                    open={this.state.openRename}
+                    modalOpen={this.state.modalOpen}
+                    onReceiveResponse={() => { this.setState({openRename: false}); this.props.onRenameTap(this.state.renamePath); }}
+                    onReceiveError={(err) => { this.setState({openRename: false}); snackBarMessage(err) }}
+                    onModalClose={() => { this.setState({openRename: false}); }}
                 />
                 <Toolbar>
                     <ToolbarGroup lastChild={true} className="col-xs-12 col-xs-1 col-xs-1">
                         <TextField
                             floatingLabelFixed={true}
                             floatingLabelText="Filter"
-                            hintText="Filter items"
+                            hintText="Search Items"
                             className="col-xs-8"
                             value={this.state.filterString}
                             onChange={(e, v) => {
