@@ -19,6 +19,7 @@ const supported_secret_backend_types = [
 ]
 
 const supported_auth_backend_types = [
+    'ldap',
     'token',
     'github',
     'radius',

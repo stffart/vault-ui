@@ -17,6 +17,7 @@ import AwsEc2AuthBackend from './components/Authentication/AwsEc2/AwsEc2.jsx';
 import AwsAuthBackend from './components/Authentication/Aws/Aws.jsx';
 import KubernetesAuthBackend from './components/Authentication/Kubernetes/Kubernetes.jsx';
 import GithubAuthBackend from './components/Authentication/Github/Github.jsx';
+import LDAPAuthBackend from './components/Authentication/LDAP/LDAP.jsx';
 import RadiusAuthBackend from './components/Authentication/Radius/Radius.jsx';
 import UserPassAuthBackend from './components/Authentication/UserPass/UserPass.jsx';
 import SecretUnwrapper from './components/shared/Wrapping/Unwrapper';
@@ -86,6 +87,7 @@ ReactDOM.render((
                 <Route path="/auth/aws-ec2/:namespace(/**)" component={AwsEc2AuthBackend} />
                 <Route path="/auth/kubernetes/:namespace(/**)" component={KubernetesAuthBackend} />
                 <Route path="/auth/github/:namespace(/**)" component={GithubAuthBackend} />
+                <Route path="/auth/ldap/:namespace(/**)" component={LDAPAuthBackend} />
                 <Route path="/auth/radius/:namespace(/**)" component={RadiusAuthBackend} />
                 <Route path="/auth/okta/:namespace(/**)" component={OktaAuthBackend} />
                 <Route path="/auth/userpass/:namespace(/**)" component={UserPassAuthBackend} />
