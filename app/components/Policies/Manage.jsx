@@ -156,7 +156,7 @@ export default class PolicyManager extends React.Component {
         ];
 
         let validatePolicyName = (event, v) => {
-            var pattern = /^[^\/&]+$/;
+            var pattern = /^[^&]+$/;
             v = v.toLowerCase();
             if (v.match(pattern)) {
                 this.setState({ newPolicyNameErrorMessage: '', focusPolicy: v });

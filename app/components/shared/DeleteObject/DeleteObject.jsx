@@ -55,6 +55,9 @@ export default class VaultObjectDeleter extends Component {
     }
 
     DeleteObject(fullpath) {
+        if(fullpath.startsWith('/ssh/'))
+           fullpath = '/sys/mounts/'+fullpath.replace('/ssh/','');
+        console.log(fullpath);
         callVaultApi('delete', fullpath)
             .then((response) => {
                 this.setState({ openDeleteModal: false });

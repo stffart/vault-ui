@@ -42,7 +42,7 @@ export default class ItemList extends React.Component {
         maxItemsPerPage: PropTypes.number,
         onTouchTap: PropTypes.func,
         onDeleteTap: PropTypes.func.isRequired,
-        onRenameTap: PropTypes.func.isRequired,
+        onRenameTap: PropTypes.func,
         onCustomListRender: PropTypes.func
     };
 
@@ -87,6 +87,8 @@ export default class ItemList extends React.Component {
             if (this.isPathDirectory(item)) return 0;
         }), (item) => {
             var avatar = this.isPathDirectory(item) ? (<Avatar icon={<FileFolder />} />) : (<Avatar icon={<ActionAccountBox />} />);
+            if(this.props.onRenameTap)
+            {
             var actions = this.isPathDirectory(item) ?  (<IconButton />)  :             
             (
                 <div>
@@ -103,8 +105,19 @@ export default class ItemList extends React.Component {
                     {window.localStorage.getItem('showDeleteModal') === 'false' ? <ActionDeleteForever color={red500} /> : <ActionDelete color={red500} />}
                 </IconButton>
                 </div>
-            );
-            
+            );            
+            } else
+            {
+            var actions = this.isPathDirectory(item) ?  (<IconButton />)  :             
+            (
+                <IconButton
+                    tooltip='Delete'
+                    onTouchTap={(e) => { e.stopPropagation(); this.setState({ deletePath: `${this.props.itemUri}/${item}`, openDelete: true }); } }
+                >
+                    {window.localStorage.getItem('showDeleteModal') === 'false' ? <ActionDeleteForever color={red500} /> : <ActionDelete color={red500} />}
+                </IconButton>
+            );            
+            }
 
             var uriItem =  this.props.itemUri+"/"+item;
 

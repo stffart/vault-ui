@@ -10,6 +10,7 @@ import { history } from './components/shared/VaultUtils.jsx';
 import App from './components/App/App.jsx';
 import SecretsGeneric from './components/Secrets/Generic/Generic.jsx';
 import PolicyManager from './components/Policies/Manage.jsx';
+import SSHManager from './components/SSH/Manage.jsx';
 import Settings from './components/Settings/Settings.jsx';
 import ResponseWrapper from './components/ResponseWrapper/ResponseWrapper.jsx';
 import TokenAuthBackend from './components/Authentication/Token/Token.jsx';
@@ -95,6 +96,7 @@ ReactDOM.render((
                 <Route path="/settings" component={Settings} />
                 <Route path="/responsewrapper" component={ResponseWrapper} />
                 <Route path="/sys/policies(/**)" component={PolicyManager} />
+                <Route path="/ssh(/**)" component={SSHManager} />
             </Route>
         </Router>
     </MuiThemeProvider>
