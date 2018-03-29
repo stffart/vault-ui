@@ -39,13 +39,14 @@ export default class ItemList extends React.Component {
     static propTypes = {
         itemList: PropTypes.array.isRequired,
         itemUri: PropTypes.string.isRequired,
+        globalFilter : PropTypes.string,
         maxItemsPerPage: PropTypes.number,
         onTouchTap: PropTypes.func,
         onDeleteTap: PropTypes.func.isRequired,
         onRenameTap: PropTypes.func,
         onCustomListRender: PropTypes.func,
         onFilterChange: PropTypes.func
-
+        
     };
 
     constructor(props) {
@@ -68,8 +69,7 @@ export default class ItemList extends React.Component {
             deletePath: '',
             renamePath: '',
             openDelete: false,
-            openRename: false,
-            globalFilter: ''
+            openRename: false
         };
 
         _.bindAll(
@@ -215,7 +215,8 @@ export default class ItemList extends React.Component {
     }
 
     currentFilter() {
-       let filter = this.state.globalFilter;
+       let filter = this.props.globalFilter;
+       if(filter == undefined) filter = '';
        if(filter == '' && this.state.filterString != '')
          return this.state.filterString;
 
@@ -252,7 +253,11 @@ export default class ItemList extends React.Component {
                             hintText="Search Items"
                             className="col-xs-8"
                             value={this.state.filterString}
-                            onClick={ () => { this.setState({ filterString : '' }); }}
+                            onClick={ () => { 
+				this.setState({ filterString : '' }); 
+                                this.filterItems('');
+                                this.setPage(this.state.currentPage, this.state.sortDirection);
+			    }}
                             onChange={(e, v) => {
                                 this.setState({ filterString: v });
                                 this.filterItems(v);
@@ -262,7 +267,6 @@ export default class ItemList extends React.Component {
 			      if (ev.key === 'Enter') {
 				      if(this.props.onFilterChange) { 
                                         this.props.onFilterChange(this.state.filterString);
-	                                this.setState({ globalFilter: this.state.filterString });
                                       } 
 				      ev.preventDefault();
 		              }

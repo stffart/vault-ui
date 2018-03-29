@@ -365,7 +365,12 @@ export default class GenericSecretBackend extends React.Component {
                 {this.renderNewObjectDialog()}
                 <Tabs>
                     <Tab label="Browse Secrets" >
-                        <Checkbox label="Global"  key="GlobalSearch" checked={this.state.globalSearch} onCheck={(event, isInputChecked) => { let checked = (this.state.globalSearch == true) ? false : true; this.setState( { globalSearch: checked, filterString: '' }, this.loadSecretsList(this.props, checked, this.state.globalFilter) ); }} />
+                        <Checkbox label="Global"  key="GlobalSearch" 
+                            checked={this.state.globalSearch} 
+                            onCheck={(event, isInputChecked) => { 
+                                let checked = (this.state.globalSearch == true) ? false : true; 
+                                this.setState( { globalSearch: checked, filterString: '', globalFilter: '' }, 
+                                  this.loadSecretsList(this.props, checked, '') ); }} />
                         <Paper className={sharedStyles.TabInfoSection} zDepth={0}>
                             Here you can browse, edit, create and delete secrets.
                         </Paper>
@@ -411,6 +416,7 @@ export default class GenericSecretBackend extends React.Component {
                                 itemList={this.state.secretList}
                                 itemUri={`${this.state.currentLogicalPath.substring(0, this.state.currentLogicalPath.length - 1)}`}
                                 maxItemsPerPage={25}
+                                globalFilter={this.state.globalFilter}
                                 onFilterChange={(value) => { 
                                     let  globSearch = value != ''; 
                                     this.setState ( { globalFilter : value, globalSearch : globSearch });
