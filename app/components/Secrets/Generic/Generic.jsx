@@ -50,6 +50,7 @@ export default class GenericSecretBackend extends React.Component {
             useRootKey: window.localStorage.getItem("useRootKey") === 'true' || false,
             rootKey: window.localStorage.getItem("secretsRootKey") || '',
             secretList: [],
+            globalFilter: ''
         }
 
         _.bindAll(
@@ -75,7 +76,9 @@ export default class GenericSecretBackend extends React.Component {
         return path.substring(0, _.lastIndexOf(path, '/') + 1);
     }
 
-    loadSecrets(path) {
+    
+
+    loadSecrets(path, globalFilter) {
         tokenHasCapabilities(['list'], path)
             .then(() => {
                 // Load secret list at current path
@@ -86,10 +89,15 @@ export default class GenericSecretBackend extends React.Component {
                            let re = new RegExp("^[\/]?"+this.state.currentLogicalPath, "g");
                            secrets[i] = path.replace(re,'')+secrets[i];
                         }
-                        this.setState({ secretList: this.state.secretList.concat(secrets) });           
-                        if(this.state.globalSearch) 
+                        
+                    
+                        if(globalFilter != '')                        
+                          this.setState({ secretList: this.state.secretList.concat(secrets.filter(secret => secret.includes(globalFilter))) }); else
+                          this.setState({ secretList: this.state.secretList.concat(secrets) });          
+
+                        if(this.state.globalSearch && globalFilter != '') 
                         for (var i = 0; i < secrets.length; i++) {
-                           this.loadSecrets(this.state.currentLogicalPath+secrets[i]);
+                           this.loadSecrets(this.state.currentLogicalPath+secrets[i], globalFilter);
                         }
                     })
                     .catch((err) => {
@@ -108,7 +116,7 @@ export default class GenericSecretBackend extends React.Component {
     }
     
 
-  loadSecretsList(prevProps, globalSearch) {
+  loadSecretsList(prevProps, globalSearch, globalFilter) {
         // Control the new secret button
         tokenHasCapabilities(['create'], this.state.currentLogicalPath)
             .then(() => {
@@ -117,15 +125,16 @@ export default class GenericSecretBackend extends React.Component {
             .catch(() => {
                 this.setState({ newSecretBtnDisabled: true })
             })
+            console.log(globalFilter);
 
             this.setState({ secretList: [] });
 
             if(globalSearch)
             {
-              this.setState({ currentLogicalPath: `secret/` }, this.loadSecrets('secret/') )
+              this.setState({ currentLogicalPath: `secret/` }, this.loadSecrets('secret/', globalFilter) )
             } else
             {
-              this.setState({ currentLogicalPath: this.props.params.splat }, this.loadSecrets(this.props.params.splat) )
+              this.setState({ currentLogicalPath: this.props.params.splat }, this.loadSecrets(this.props.params.splat, globalFilter) )
             }
     }
 
@@ -147,7 +156,7 @@ export default class GenericSecretBackend extends React.Component {
 
     componentDidMount() {
         if (this.isPathDirectory(this.props.params.splat)) {
-            this.loadSecretsList(this.props,this.state.globalSearch);
+            this.loadSecretsList(this.props,this.state.globalSearch, this.state.globalFilter);
         } else {
             this.displaySecret();
         }
@@ -165,7 +174,7 @@ export default class GenericSecretBackend extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         if (!_.isEqual(this.props.params, prevProps.params)) {
             if (this.isPathDirectory(this.props.params.splat)) {
-                this.loadSecretsList(prevProps,this.state.globalSearch);
+                this.loadSecretsList(prevProps,this.state.globalSearch, this.state.globalFilter);
             } else {
                 this.displaySecret();
             }
@@ -193,7 +202,7 @@ export default class GenericSecretBackend extends React.Component {
         callVaultApi('post', fullpath, null, secret, null)
             .then(() => {
                 if (this.state.newSecretName) {
-                    this.loadSecretsList(this.props,this.state.globalSearch);
+                    this.loadSecretsList(this.props, this.state.globalSearch, this.state.globalFilter);
                     snackBarMessage(`Secret ${fullpath} added`);
                 } else {
                     snackBarMessage(`Secret ${fullpath} updated`);
@@ -356,7 +365,7 @@ export default class GenericSecretBackend extends React.Component {
                 {this.renderNewObjectDialog()}
                 <Tabs>
                     <Tab label="Browse Secrets" >
-                        <Checkbox label="Global"  key="GlobalSearch" checked={this.state.globalSearch} onCheck={(event, isInputChecked) => { let checked = (this.state.globalSearch == true) ? false : true; this.setState( { globalSearch: checked, filterString: '' }, this.loadSecretsList(this.props,checked) ); }} />
+                        <Checkbox label="Global"  key="GlobalSearch" checked={this.state.globalSearch} onCheck={(event, isInputChecked) => { let checked = (this.state.globalSearch == true) ? false : true; this.setState( { globalSearch: checked, filterString: '' }, this.loadSecretsList(this.props, checked, this.state.globalFilter) ); }} />
                         <Paper className={sharedStyles.TabInfoSection} zDepth={0}>
                             Here you can browse, edit, create and delete secrets.
                         </Paper>
@@ -402,8 +411,13 @@ export default class GenericSecretBackend extends React.Component {
                                 itemList={this.state.secretList}
                                 itemUri={`${this.state.currentLogicalPath.substring(0, this.state.currentLogicalPath.length - 1)}`}
                                 maxItemsPerPage={25}
+                                onFilterChange={(value) => { 
+                                    let  globSearch = value != ''; 
+                                    this.setState ( { globalFilter : value, globalSearch : globSearch });
+                                    this.loadSecretsList(this.props,globSearch,value); 
+                                }}
                                 onRenameTap={(renamedItem) => {
-                                    this.loadSecretsList(this.props,this.state.globalSearch);
+                                    this.loadSecretsList(this.props,this.state.globalSearch,this.state.globalFilter);
                                     snackBarMessage(`Secret ${renamedItem} renamed`);
                                 }}
 				onDeleteTap={(deletedItem) => {
@@ -414,7 +428,7 @@ export default class GenericSecretBackend extends React.Component {
                                     this.setState({
                                         secretList: secrets
                                     });
-                                    this.loadSecretsList(this.props,this.state.globalSearch);
+                                    this.loadSecretsList(this.props,this.state.globalSearch,this.state.globalFilter);
                                     snackBarMessage(`Secret ${deletedItem} deleted`);
                                 }}
                                 onTouchTap={(key) => {

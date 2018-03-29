@@ -43,7 +43,9 @@ export default class ItemList extends React.Component {
         onTouchTap: PropTypes.func,
         onDeleteTap: PropTypes.func.isRequired,
         onRenameTap: PropTypes.func,
-        onCustomListRender: PropTypes.func
+        onCustomListRender: PropTypes.func,
+        onFilterChange: PropTypes.func
+
     };
 
     constructor(props) {
@@ -66,13 +68,15 @@ export default class ItemList extends React.Component {
             deletePath: '',
             renamePath: '',
             openDelete: false,
-            openRename: false
+            openRename: false,
+            globalFilter: ''
         };
 
         _.bindAll(
             this,
             'renderItemList',
-            'setPage'
+            'setPage',
+            'currentFilter'
         );
     }
 
@@ -210,6 +214,17 @@ export default class ItemList extends React.Component {
         this.setPage();
     }
 
+    currentFilter() {
+       let filter = this.state.globalFilter;
+       if(filter == '' && this.state.filterString != '')
+         return this.state.filterString;
+
+       if(filter != this.state.filterString && this.state.filterString != '')
+         filter = filter + " AND " + this.state.filterString;
+      
+       return filter;
+    }
+
     render() {
         return (
             <div>
@@ -233,15 +248,25 @@ export default class ItemList extends React.Component {
                     <ToolbarGroup lastChild={true} className="col-xs-12 col-xs-1 col-xs-1">
                         <TextField
                             floatingLabelFixed={true}
-                            floatingLabelText="Filter"
+                            floatingLabelText={"Filter: "+this.currentFilter() }
                             hintText="Search Items"
                             className="col-xs-8"
                             value={this.state.filterString}
+                            onClick={ () => { this.setState({ filterString : '' }); }}
                             onChange={(e, v) => {
                                 this.setState({ filterString: v });
                                 this.filterItems(v);
                                 this.setPage(this.state.currentPage, this.state.sortDirection)
                             }}
+                            onKeyPress={(ev) => {
+			      if (ev.key === 'Enter') {
+				      if(this.props.onFilterChange) { 
+                                        this.props.onFilterChange(this.state.filterString);
+	                                this.setState({ globalFilter: this.state.filterString });
+                                      } 
+				      ev.preventDefault();
+		              }
+  			    }}
                         />
                         <TextField
                             floatingLabelFixed={true}
